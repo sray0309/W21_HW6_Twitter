@@ -196,10 +196,10 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
                 if ((hashtag_to_ignore[1:].lower() in hashtag['text'].lower()) or (hashtag['text'].lower() in hashtag_to_ignore[1:].lower())):
                     pass
                 else:
-                    if hashtag['text'] in list(hashtags.keys()):
-                        hashtags[hashtag['text']] += 1
+                    if hashtag['text'].lower() in list(hashtags.keys()):
+                        hashtags[hashtag['text'].lower()] += 1
                     else:
-                        hashtags[hashtag['text']] = 1
+                        hashtags[hashtag['text'].lower()] = 1
 
     num = 0
     for key, val in hashtags.items():

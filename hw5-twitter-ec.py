@@ -6,6 +6,7 @@
 from requests_oauthlib import OAuth1
 import json
 import requests
+import csv
 
 import hw6_secrets_starter as secrets # file that contains your OAuth credentials
 
@@ -21,6 +22,17 @@ oauth = OAuth1(client_key,
             client_secret=client_secret,
             resource_owner_key=access_token,
             resource_owner_secret=access_token_secret)
+
+def open_stop_word():
+    with open('stop-word-list.csv', newline='') as csvfile:
+        stop_word = list(csv.reader(csvfile, delimiter=','))
+    stop_word = stop_word[0]
+    result = []
+    for word in stop_word:
+        result.append(word.strip())
+    result.append('rt')
+
+    return result
 
 def test_oauth():
     ''' Helper function that returns an HTTP 200 OK response code and a 
@@ -196,10 +208,10 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
                 if ((hashtag_to_ignore[1:].lower() in hashtag['text'].lower()) or (hashtag['text'].lower() in hashtag_to_ignore[1:].lower())):
                     pass
                 else:
-                    if hashtag['text'] in list(hashtags.keys()):
-                        hashtags[hashtag['text']] += 1
+                    if hashtag['text'].lower() in list(hashtags.keys()):
+                        hashtags[hashtag['text'].lower()] += 1
                     else:
-                        hashtags[hashtag['text']] = 1
+                        hashtags[hashtag['text'].lower()] = 1
 
     cooccur_hashtag = []
     for i in range(3):
@@ -209,18 +221,44 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
                 num = val
                 top_hashtag = key
         if num == 0:
-            return cooccur_hashtag
+            break
         cooccur_hashtag.append('#'+top_hashtag)
         del hashtags[top_hashtag]
 
     return cooccur_hashtag
-    ''' Hint: In case you're confused about the hashtag_to_ignore 
-    parameter, we want to ignore the hashtag we queried because it would 
-    definitely be the most occurring hashtag, and we're trying to find 
-    the most commonly co-occurring hashtag with the one we queried (so 
-    we're essentially looking for the second most commonly occurring 
-    hashtags).'''
 
+def find_most_common_occurring_words(tweet_data):
+    results = tweet_data['statuses']
+    words_dict = {}
+    stop_word = open_stop_word()
+    for result in results:
+        if result['text'] != None:
+            words = result['text'].split(' ')
+            for word in words:
+                if word == '':
+                    continue
+                if (word.lower() in stop_word) or word[0] == '#':
+                    pass
+                else:
+                    if word.lower() in list(words_dict.keys()):
+                        words_dict[word.lower()] += 1
+                    else:
+                        words_dict[word.lower()] = 1
+
+
+    cooccur_words = {}
+    for i in range(10):
+        num = 0
+        for key, val in words_dict.items():
+            if val > num:
+                num = val
+                top_word = key
+        if num == 0:
+            break
+        cooccur_words[top_word] = num
+        del words_dict[top_word]
+
+    return cooccur_words
     
 
 if __name__ == "__main__":
@@ -249,3 +287,13 @@ if __name__ == "__main__":
                 print("There are no coocurring hashtags")
             else:
                 print("The top three cooccurring hashtag with {} is {}.".format(hashtag, top_three_cooccurring_hashtag))
+
+            top_ten_occuring_words = find_most_common_occurring_words(tweet_data)
+            if top_ten_occuring_words == {}:
+                print("There are no occuring words")
+            else:
+                print("The top ten occurring words with {} is shown below along with the frequency.".format(hashtag))
+                i = 1
+                for key, val in top_ten_occuring_words.items():
+                    print(f'{i}: {key} occurs {val} times')
+                    i += 1
