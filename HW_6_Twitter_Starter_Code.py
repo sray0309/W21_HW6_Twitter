@@ -98,7 +98,7 @@ def construct_unique_key(baseurl, params):
     '''
     s = baseurl
     for key, val in params.items():
-        s = s + '_' + str(key) + '_' + str(val)
+        s = s + '_' + str(key).lower() + '_' + str(val).lower()
     
     return s
 
@@ -207,7 +207,7 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
             num = val
             cooccur_hashtag = key
 
-    return cooccur_hashtag
+    return '#' + cooccur_hashtag
     ''' Hint: In case you're confused about the hashtag_to_ignore 
     parameter, we want to ignore the hashtag we queried because it would 
     definitely be the most occurring hashtag, and we're trying to find 
